@@ -1,0 +1,19 @@
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Cookies
+cookies.txt
+
+# Downloads
+downloads/*
+!downloads/.gitkeep
+
+# Node modules
+node_modules/
