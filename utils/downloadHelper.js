@@ -6,8 +6,19 @@ const fs = require('fs');
 // Fallback to system-installed yt-dlp if the package is not available.
 let ytDlp;
 try {
-  const ytdlpPath = require('@distube/yt-dlp');
-  ytDlp = require('youtube-dl-exec').create(ytdlpPath);
+  const ytdlpMod = require('@distube/yt-dlp');
+  let ytdlpPath = null;
+  if (typeof ytdlpMod === 'string') {
+    ytdlpPath = ytdlpMod;
+  } else if (ytdlpMod && typeof ytdlpMod.path === 'string') {
+    ytdlpPath = ytdlpMod.path;
+  }
+  if (ytdlpPath && typeof ytdlpPath === 'string') {
+    ytDlp = require('youtube-dl-exec').create(ytdlpPath);
+  } else {
+    // Fallback to system/default executor
+    ytDlp = require('youtube-dl-exec');
+  }
 } catch (_) {
   ytDlp = require('youtube-dl-exec');
 }
