@@ -30,6 +30,15 @@ app.use('/api/download', allRoutes); // All platform-specific routes will be und
 // This is for demonstration. In a real production app, consider secure file serving or cloud storage.
 app.use('/downloads', express.static('downloads'));
 
+// Basic health endpoint and landing
+app.get('/', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        message: 'DownloaderYaar API is running',
+        apiBase: '/api/download'
+    });
+});
+
 
 // Custom error handler middleware
 app.use(errorHandler);

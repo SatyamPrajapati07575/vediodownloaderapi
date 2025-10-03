@@ -1,7 +1,16 @@
 // utils/downloadHelper.js
-const ytDlp = require('youtube-dl-exec');
 const path = require('path');
 const fs = require('fs');
+
+// Prefer a bundled yt-dlp binary for consistent behavior across environments (e.g., Render)
+// Fallback to system-installed yt-dlp if the package is not available.
+let ytDlp;
+try {
+  const ytdlpPath = require('@distube/yt-dlp');
+  ytDlp = require('youtube-dl-exec').create(ytdlpPath);
+} catch (_) {
+  ytDlp = require('youtube-dl-exec');
+}
 
 const getDirectVideoUrl = async (videoUrl, platform) => {
     try {
@@ -12,17 +21,35 @@ const getDirectVideoUrl = async (videoUrl, platform) => {
             noCheckCertificates: true,
         };
 
+        // Apply cookies if provided via environment for any platform that may require authentication.
+        // Set COOKIES_PATH to a readable file path (e.g., ./cookies.txt) in your environment.
+        const cookiesPathFromEnv = process.env.COOKIES_PATH;
+        if (cookiesPathFromEnv) {
+            const resolved = path.isAbsolute(cookiesPathFromEnv)
+                ? cookiesPathFromEnv
+                : path.join(process.cwd(), cookiesPathFromEnv);
+            if (fs.existsSync(resolved)) {
+                options.cookies = resolved;
+            }
+        }
+
         // YouTube ke liye specific format selection
         if (platform === "YouTube") {
             // Combined video+audio MP4 format prefer karo
             options.format = 'best[ext=mp4][vcodec!=none][acodec!=none]/best[ext=mp4]/best[height<=720]/best';
+            // Add desktop UA and referer to reduce bot checks
+            options.userAgent = options.userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36';
+            options.addHeader = [
+                'Referer: https://www.youtube.com',
+                'Origin: https://www.youtube.com'
+            ];
         }
 
-        // Instagram / Facebook ke liye cookies
-        if (platform === "Instagram" || platform === "Facebook") {
-            const cookiesPath = path.join(__dirname, '..', 'cookies.txt');
-            if (fs.existsSync(cookiesPath)) {
-                options.cookies = cookiesPath;
+        // Backward compatibility: also look for project-local cookies.txt if COOKIES_PATH not set
+        if (!options.cookies && (platform === "Instagram" || platform === "Facebook" || platform === "YouTube")) {
+            const fallbackCookies = path.join(__dirname, '..', 'cookies.txt');
+            if (fs.existsSync(fallbackCookies)) {
+                options.cookies = fallbackCookies;
             }
         }
 

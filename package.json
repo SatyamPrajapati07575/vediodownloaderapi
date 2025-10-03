@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0",
     "mongoose": "^8.18.2",
+    "@distube/yt-dlp": "^2024.10.7",
     "youtube-dl-exec": "^3.0.25",
     "zod": "^4.1.11"
   }
